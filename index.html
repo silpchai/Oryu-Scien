@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบวิทยาศาสตร์ ป.3 เรื่องไฟฟ้า</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --primary: #4a90e2;
+            --secondary: #ffcc00;
+            --success: #28a745;
+            --error: #dc3545;
+            --text: #333;
+        }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+        
+        .quiz-item {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+        .question-text { font-weight: bold; font-size: 1.1em; margin-bottom: 15px; }
+        
+        .options { list-style: none; padding: 0; }
+        .options li { margin-bottom: 10px; }
+        
+        label {
+            display: block;
+            padding: 12px 15px;
+            background: #fdfdfd;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        label:hover { background: #eef5ff; border-color: var(--primary); }
+        input[type="radio"] { margin-right: 10px; transform: scale(1.2); }
+
+        #btn-submit {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #btn-submit:hover { background: #357abd; transform: translateY(-2px); }
+
+        #result-box {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+        .feedback {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        .correct-ans { background-color: #d4edda; color: #155724; border-left: 5px solid var(--success); }
+        .wrong-ans { background-color: #f8d7da; color: #721c24; border-left: 5px solid var(--error); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚡ แบบทดสอบ: ไฟฟ้าน่ารู้ (ป.3)</h1>
+    <p class="subtitle">เลือกคำตอบที่ถูกต้องที่สุดจำนวน 20 ข้อ</p>
+    
+    <form id="quizForm">
+        <div id="quiz-content"></div>
+        <button type="button" id="btn-submit" onclick="gradeQuiz()">ส่งคำตอบและดูคะแนน</button>
+    </form>
+
+    <div id="result-box"></div>
+</div>
+
+<script>
+    const questions = [
+        { q: "แหล่งกำเนิดไฟฟ้าที่ใช้ในนาฬิกาแขวนคืออะไร?", a: 0, options: ["ถ่านไฟฉาย", "ไดนาโม", "โรงไฟฟ้า", "แสงอาทิตย์"] },
+        { q: "ข้อใดคือหน้าที่ของ 'ไดนาโม'?", a: 1, options: ["เปลี่ยนพลังงานไฟฟ้าเป็นแสง", "เปลี่ยนพลังงานกลเป็นไฟฟ้า", "เก็บสำรองไฟฟ้า", "ตัดวงจรไฟฟ้า"] },
+        { q: "พัดลมเปลี่ยนพลังงานไฟฟ้าเป็นพลังงานรูปแบบใด?", a: 2, options: ["พลังงานความร้อน", "พลังงานเสียง", "พลังงานกล", "พลังงานแสง"] },
+        { q: "ข้อใดเป็นเครื่องใช้ไฟฟ้าที่ให้พลังงานความร้อนทั้งหมด?", a: 0, options: ["เตารีด, หม้อหุงข้าว", "โทรทัศน์, วิทยุ", "พัดลม, เครื่องซักผ้า", "หลอดไฟ, ไฟฉาย"] },
+        { q: "เครื่องใช้ไฟฟ้าชนิดใดเปลี่ยนพลังงานไฟฟ้าเป็นพลังงานแสงและเสียงพร้อมกัน?", a: 3, options: ["เตาไมโครเวฟ", "กระติกน้ำร้อน", "พัดลม", "โทรทัศน์"] },
+        { q: "วัสดุในข้อใดเป็น 'ตัวนำไฟฟ้า'?", a: 1, options: ["พลาสติก", "ลวดทองแดง", "ไม้แห้ง", "ยาง"] },
+        { q: "ส่วนประกอบของสายไฟที่ป้องกันไฟดูดคืออะไร?", a: 2, options: ["ลวดทองแดงด้านใน", "ขาปลั๊กไฟ", "พลาสติกที่หุ้มสายไฟ", "สวิตช์ไฟ"] },
+        { q: "ถ้าต้องการประหยัดไฟฟ้าควรทำอย่างไร?", a: 3, options: ["เปิดไฟทิ้งไว้ทั้งบ้าน", "เปิดตู้เย็นค้างไว้นานๆ", "รีดผ้าครั้งละ 1 ตัว", "ปิดสวิตช์และถอดปลั๊กเมื่อไม่ใช้งาน"] },
+        { q: "ทำไมจึงห้ามใช้มือเปียกกดสวิตช์ไฟ?", a: 1, options: ["จะทำให้มือเปื้อน", "น้ำเป็นตัวนำไฟฟ้าอาจทำให้ไฟดูด", "จะทำให้ไฟดับ", "จะทำให้สวิตช์เสีย"] },
+        { q: "อุปกรณ์ใดทำหน้าที่ตัดวงจรไฟฟ้าเมื่อเกิดไฟเกินหรือไฟช็อต?", a: 0, options: ["ฟิวส์ หรือ เบรกเกอร์", "ปลั๊กไฟ", "หลอดไฟ", "มอเตอร์"] },
+        { q: "พลังงานหลักที่ใช้ผลิตไฟฟ้าในประเทศไทยคืออะไร?", a: 1, options: ["ถ่านหิน", "ก๊าซธรรมชาติ", "พลังงานลม", "พลังงานน้ำจากเขื่อน"] },
+        { q: "เครื่องซักผ้ามีการเปลี่ยนรูปพลังงานเหมือนกับอุปกรณ์ใด?", a: 2, options: ["เตาไฟฟ้า", "วิทยุ", "พัดลม", "หลอดไฟ"] },
+        { q: "ข้อใดกล่าวถูกต้องเกี่ยวกับ 'วงจรปิด'?", a: 0, options: ["กระแสไฟฟ้าไหลได้ครบวงจร ไฟติด", "สายไฟขาด ไฟดับ", "สวิตช์ถูกปิดอยู่", "ไม่มีกระแสไฟฟ้าไหล"] },
+        { q: "แบตเตอรี่รถยนต์จัดเป็นแหล่งกำเนิดไฟฟ้าประเภทใด?", a: 2, options: ["ไดนาโม", "โซลาร์เซลล์", "เซลล์ไฟฟ้าเคมี", "เครื่องปั่นไฟ"] },
+        { q: "เมื่อพบสายไฟชำรุดควรทำอย่างไร?", a: 3, options: ["เอาเทปกาวใสมาพัน", "ใช้ต่อไปเรื่อยๆ", "ลองซ่อมเอง", "รีบบอกผู้ใหญ่ให้ตามช่างมาซ่อม"] },
+        { q: "วัสดุใดจัดเป็น 'ฉนวนไฟฟ้า'?", a: 0, options: ["ยาง", "อลูมิเนียม", "เหล็ก", "ทองแดง"] },
+        { q: "แหล่งกำเนิดไฟฟ้าที่ใหญ่ที่สุดที่ส่งไฟมาบ้านเราคือที่ไหน?", a: 1, options: ["แบตเตอรี่", "โรงไฟฟ้า", "ไดนาโมจักรยาน", "ถ่านอัลคาไลน์"] },
+        { q: "คอมพิวเตอร์เปลี่ยนพลังงานไฟฟ้าเป็นพลังงานใดบ้าง?", a: 3, options: ["แสงและกล", "ความร้อนและกล", "เสียงและกล", "แสงและเสียง"] },
+        { q: "การเสียบปลั๊กพ่วงหลายตัวในเต้ารับเดียวจะเกิดผลอย่างไร?", a: 1, options: ["ประหยัดไฟขึ้น", "เกิดความร้อนสูงและไฟไหม้ได้", "เครื่องใช้ไฟฟ้าจะแรงขึ้น", "ไม่เป็นอะไรเลย"] },
+        { q: "ประโยชน์สูงสุดของไฟฟ้าคือข้อใด?", a: 2, options: ["ช่วยให้เราเล่นเกมได้", "ทำให้บ้านสวยงาม", "อำนวยความสะดวกในชีวิตประจำวัน", "ทำให้เรานอนหลับสบาย"] }
+    ];
+
+    const quizContent = document.getElementById('quiz-content');
+    questions.forEach((item, index) => {
+        let optionsHTML = '';
+        item.options.forEach((opt, i) => {
+            optionsHTML += `
+                <li>
+                    <label>
+                        <input type="radio" name="q${index}" value="${i}"> ${opt}
+                    </label>
+                </li>`;
+        });
+        quizContent.innerHTML += `
+            <div class="quiz-item" id="item-${index}">
+                <div class="question-text">${index + 1}. ${item.q}</div>
+                <ul class="options">${optionsHTML}</ul>
+                <div id="feedback-${index}" class="feedback"></div>
+            </div>`;
+    });
+
+    function gradeQuiz() {
+        let score = 0;
+        questions.forEach((item, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            const feedback = document.getElementById(`feedback-${index}`);
+            const itemBox = document.getElementById(`item-${index}`);
+            
+            feedback.style.display = 'block';
+            if (selected && parseInt(selected.value) === item.a) {
+                score++;
+                feedback.innerHTML = "ถูกต้อง! ✅";
+                feedback.className = "feedback correct-ans";
+            } else {
+                feedback.innerHTML = `ผิด ❌ (คำตอบที่ถูกคือ: ${item.options[item.a]})`;
+                feedback.className = "feedback wrong-ans";
+            }
+        });
+
+        const resultBox = document.getElementById('result-box');
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `คุณได้คะแนน ${score} เต็ม ${questions.length} คะแนน`;
+        resultBox.style.backgroundColor = score >= 15 ? '#d4edda' : '#fff3cd';
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.getElementById('btn-submit').innerText = "ทำใหม่อีกครั้ง";
+        document.getElementById('btn-submit').onclick = () => location.reload();
+    }
+</script>
+
+</body>
+</html>
